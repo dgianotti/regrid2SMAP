@@ -26,8 +26,8 @@ end
 
 load('M2_to_SMAP.mat'); % Loads the M2_to_SMAP matrix
 
-V = reshape(permute(X,[2,1,3]),[numel(X),1]);
-X_on_SMAP_grid = flipud(reshape(M2_to_SMAP * V, [406,964]));
+V = reshape(permute(X,[2,1,3]),[size(X,1)*size(X,2),size(X,3)]);
+X_on_SMAP_grid = flipud(reshape(M2_to_SMAP * V, [406,964,size(X,3)]));
 
 if nargout > 1
    if ~exist('SMAP36_centers_latlon.mat','file')
