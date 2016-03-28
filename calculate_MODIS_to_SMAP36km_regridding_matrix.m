@@ -1,7 +1,7 @@
 function calculate_MODIS_to_SMAP36km_regridding_matrix()
 
 if isempty(gcp)
-    parpool;
+    parpool(20);
 end
 
 % The basic plan here is to create a sparse matrix that you can multiply
@@ -96,6 +96,8 @@ MOD_centers_lat_extended = [MOD_centers_lat(:, (end-N_lon_cells_added_MOD+1):(en
 
 C = cell(numel(SMAP_centers_lat),1);
 
+ref_elipsoid = referenceEllipsoid('wgs84','kilometers');
+
 for i = 1:size(SMAP_centers_lat,1)
     fprintf('i = %d / %d...\n',i,size(SMAP_centers_lat,1));
     for j = 1:size(SMAP_centers_lat,2)
@@ -128,7 +130,7 @@ for i = 1:size(SMAP_centers_lat,1)
         
         [i_vec,j_vec] = ind2sub(size(MOD_centers_lat_extended),MOD_indices);
         a_vec = zeros(N,1); % The areas will go in here...
-        parfor n = 1:N
+        for n = 1:N
             %[lon_intersect, lat_intersect] = polybool('intersection',SMAP_poly_latlon(:,2)+lon_offset,SMAP_poly_latlon(:,1),...
             %    M2_tmp_lon(:,n),M2_tmp_lat(:,n));
             [lon_intersect, lat_intersect] = my_polybool(SMAP_poly_latlon(:,2),SMAP_poly_latlon(:,1),...
@@ -136,7 +138,7 @@ for i = 1:size(SMAP_centers_lat,1)
             
             if ~isempty(lat_intersect)
                 a_vec(n) = areaquad(min(lat_intersect),min(lon_intersect),...
-                    max(lat_intersect),max(lon_intersect),referenceEllipsoid('wgs84','kilometers'),'degrees');
+                    max(lat_intersect),max(lon_intersect),ref_elipsoid,'degrees');
             end
         end
         
@@ -154,7 +156,6 @@ for i = 1:size(SMAP_centers_lat,1)
 
 end
 
-% Close the parpool:
 delete(gcp);
 
 % Now time to make a sparse matrix
